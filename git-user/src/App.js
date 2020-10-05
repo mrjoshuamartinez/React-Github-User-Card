@@ -6,15 +6,17 @@ import star from './images/star.png';
 import location from './images/location.png';
 import Footer from './components/Footer';
 import NavBar from './components/NavBar';
+import Followers from './components/Followers';
 
-const firstAppLoad = "https://api.github.com/users/mrjoshuamartinez";
 class App extends Component{
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     this.state = {
-      login: firstAppLoad,
       user: '',
-      followers: ''
+      repos: '',
+      followers: '',
+      following: '',
+      starred: ''
     };
   };
 
@@ -24,31 +26,69 @@ class App extends Component{
   imgLocation = location;
 
   componentDidMount() {
+    const apiOne = "https://api.github.com/users/mrjoshuamartinez";
+    const apiTwo = "https://api.github.com/users/mrjoshuamartinez/repos";
+    const apiThree = "https://api.github.com/users/mrjoshuamartinez/followers";
+    const apiFour = "https://api.github.com/users/mrjoshuamartinez/following";
+    const apiFive = "https://api.github.com/users/mrjoshuamartinez/starred";
+    const firstUserLoad = axios.get(apiOne);
+    const firstRepoLoad = axios.get(apiTwo);
+    const firstFollowersLoad = axios.get(apiThree);
+    const firstFollowingLoad = axios.get(apiFour);
+    const firstStarredLoad = axios.get(apiFive);
     console.log("App has mounted.")
     axios
-      .get(`${firstAppLoad}`)
-      .then((user) => {
-        this.setState({ user: user.data });
-      })
-      .catch((err) => console.log(err));
+      .all([firstUserLoad, firstRepoLoad, firstFollowersLoad, firstFollowingLoad, firstStarredLoad])
+      .then(
+        axios.spread((...responses) => {
+          const responseUserLoad = responses[0];
+          this.setState({user: responseUserLoad.data});
+          const responseRepoLoad = responses[1];
+          this.setState({repos: responseRepoLoad.data});
+          const responseFollowersLoad = responses[2];
+          this.setState({followers: responseFollowersLoad.data});
+          const responseFollowingLoad = responses[3];
+          this.setState({following: responseFollowingLoad.data});
+          const responseStarredLoad = responses[4];
+          this.setState({starred: responseStarredLoad.data});
+
+          // use/access the results
+          console.log("User API: ", responseUserLoad.data);
+          console.log("Repo API: ", responseRepoLoad.data);
+          console.log("Followers API: ", responseFollowersLoad.data);
+          console.log("Following API: ", responseFollowingLoad.data);
+          console.log("Starred API: ", responseStarredLoad.data);
+        })
+      )
+      .catch(errors => {
+        // react on errors.
+        console.error(errors);
+      }
+    );
+  }
+   
+
+  getFollowers = () => {
+
   }
 
+  getFollowing = () => {
+
+  }
+
+  getStarred = () => {
+
+  }
+  
   componentDidUpdate(prevState) {
+    
     if (prevState.user !== this.state.user) {
       console.log("User has changed.");
     }
-  }
 
-  getFollowers = () => {
-    const userFollowers = this.state.user.followers_url;
-    console.log(userFollowers)
-    axios
-      .get(`${userFollowers}`)
-      .then((followers) => {
-        this.setState({ followers: followers.data });
-      })
-      .catch((err) => console.log(err));
-    console.log("Getting followers :", this.state.followers.data)
+    if (prevState.followers !== this.state.followers) {
+      console.log("Followers Changed: ", this.dataFollow)
+    }
   }
 
 
@@ -76,7 +116,7 @@ class App extends Component{
                     </span>
                   </a>
                 </div> 
-                <div className="navStats" onClick={console.log("Following")}>
+                <div className="navStats" onClick={this.getFollowing}>
                   {/* eslint-disable-next-line */}
                   <a>
                     <span className="stats">
@@ -96,14 +136,10 @@ class App extends Component{
               <div className="location">
               <img className="locationImg" src={this.imgLocation} alt="Location" />{this.state.user.location}
               </div>
-              <div className="location">
-                {console.log(this.state.user.email)}
-              </div>
-
             </div>
           </div>
           <div className="right-content">
-            Right
+            {/* <Followers followers={this.state.followers} /> */}
           </div>
         </div>
           <Footer />
